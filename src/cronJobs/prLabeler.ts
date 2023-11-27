@@ -3,6 +3,7 @@ import {Octokit} from '@octokit/rest'
 
 import {Context} from '@actions/github/lib/context'
 import * as core from '@actions/core'
+import {Endpoints} from '@octokit/types'
 
 import * as yaml from 'js-yaml'
 import * as minimatch from 'minimatch'
@@ -10,6 +11,9 @@ import * as minimatch from 'minimatch'
 // This variable is used to track number of jobs processed
 // while recursing through pages of the github api
 let jobsDone = 0
+
+type PullsListResponseDataType =
+  Endpoints['GET /repos/{owner}/{repo}/pulls']['response']['data']
 
 /**
  * Inspired by https://github.com/actions/stale
@@ -26,10 +30,12 @@ export const cronLabelPr = async (
   core.info(`starting PR labeler page ${currentPage}`)
 
   const token = core.getInput('github-token', {required: true})
-  const octokit = new github.GitHub(token)
+  const octokit = new Octokit({
+    auth: token
+  })
 
   // Get next batch
-  let prs: Octokit.PullsListResponseItem[]
+  let prs: PullsListResponseDataType
   try {
     prs = await getPrs(octokit, context, currentPage)
   } catch (e) {
@@ -69,10 +75,10 @@ export const cronLabelPr = async (
  * @param page - the page number to get from the api
  */
 const getPrs = async (
-  octokit: github.GitHub,
+  octokit: Octokit,
   context: Context = github.context,
   page: number
-): Promise<Octokit.PullsListResponse> => {
+): Promise<PullsListResponseDataType> => {
   core.debug(`getting prs page ${page}...`)
   const prResults = await octokit.pulls.list({
     ...context.repo,
@@ -95,7 +101,7 @@ const getPrs = async (
 const labelPr = async (
   prNum: number,
   context: Context = github.context,
-  octokit: github.GitHub
+  octokit: Octokit
 ): Promise<void> => {
   const changedFiles = await getChangedFiles(octokit, context, prNum)
   const labels = await getLabelsFromFileGlobs(octokit, context, changedFiles)
@@ -116,15 +122,17 @@ const labelPr = async (
  * @param prNum - the PR to check
  */
 const getChangedFiles = async (
-  octokit: github.GitHub,
+  octokit: Octokit,
   context: Context,
   prNum: number
 ): Promise<string[]> => {
   core.debug(`getting changed files for pr ${prNum}`)
+  /* eslint-disable @typescript-eslint/naming-convention */
   const listFilesResponse = await octokit.pulls.listFiles({
     ...context.repo,
     pull_number: prNum
   })
+  /* eslint-enable @typescript-eslint/naming-convention */
 
   const changedFiles = listFilesResponse.data.map(f => f.filename)
   core.debug(`files changed: ${changedFiles}`)
@@ -141,7 +149,7 @@ const getChangedFiles = async (
  * @param files - the list of files that have changed in the PR
  */
 const getLabelsFromFileGlobs = async (
-  octokit: github.GitHub,
+  octokit: Octokit,
   context: Context,
   files: string[]
 ): Promise<string[]> => {
@@ -151,13 +159,13 @@ const getLabelsFromFileGlobs = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let response: any = undefined
   try {
-    response = await octokit.repos.getContents({
+    response = await octokit.rest.repos.getContent({
       ...context.repo,
       path: '.github/labels.yaml'
     })
   } catch (e) {
     try {
-      response = await octokit.repos.getContents({
+      response = await octokit.rest.repos.getContent({
         ...context.repo,
         path: '.github/labels.yml'
       })
@@ -180,7 +188,8 @@ const getLabelsFromFileGlobs = async (
   ).toString()
 
   core.debug(`label file contents: ${decoded}`)
-  const content = yaml.safeLoad(decoded)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const content: any = yaml.load(decoded)
 
   const labelMap: Map<string, string[]> = new Map()
 
@@ -235,18 +244,20 @@ const checkGlobs = (files: string[], globs: string[]): boolean => {
  * @param labels - the labels for the PR
  */
 export const sendLabels = async (
-  octokit: github.GitHub,
+  octokit: Octokit,
   context: Context,
   prNum: number,
   labels: string[]
 ): Promise<void> => {
   try {
     core.debug(`sending labels ${labels} for PR ${prNum}`)
+    /* eslint-disable @typescript-eslint/naming-convention */
     await octokit.issues.addLabels({
       ...context.repo,
       issue_number: prNum,
       labels
     })
+    /* eslint-enable @typescript-eslint/naming-convention */
   } catch (e) {
     throw new Error(`sending labels: ${e}`)
   }
