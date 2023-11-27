@@ -1,9 +1,8 @@
 import * as github from '@actions/github'
-
 import * as core from '@actions/core'
-
 import {Context} from '@actions/github/lib/context'
 import {onPrLgtm} from './onPrLgtm'
+import {isRobot} from "../constant";
 
 /**
  * This method handles any pull-request configuration for configured workflows.
@@ -12,42 +11,55 @@ import {onPrLgtm} from './onPrLgtm'
  * @param context - the github context of the current action event
  */
 export const handlePullReq = async (
-  context: Context = github.context
+    context: Context = github.context
 ): Promise<void> => {
-  const runConfig = core.getInput('jobs', {required: false}).split(' ')
+    console.log('handlePullReq')
+    if (core.isDebug()) {
+        console.log(context)
+    }
+    if (isRobot()) {
+        return;
+    }
 
-  await Promise.all(
-    runConfig.map(async command => {
-      core.debug(`${context}`)
-      switch (command) {
-        case 'lgtm':
-          core.debug('running pr lgtm new commit job')
-          return await onPrLgtm(context).catch(async e => {
-            return e
-          })
-
-        case '':
-          return new Error(
-            `please provide a list of space delimited commands / jobs to run. None found`
-          )
-
-        default:
-          return new Error(
-            `could not execute ${command}. May not be supported - please refer to docs`
-          )
-      }
-    })
-  )
-    .then(results => {
-      for (const result of results) {
-        if (result instanceof Error) {
-          throw new Error(`error handling issue comment: ${result}`)
+    const action = context.payload.action
+    if (action === 'edited') {
+        console.log(`Skip, action: ${action}`)
+        if (core.isDebug()) {
+            console.log(context)
         }
-      }
-    })
-    .catch(e => {
-      core.setFailed(`${e}`)
-    })
+        return;
+    }
 
-  return
+    const runConfig = core.getInput('jobs', {required: false}).split(' ');
+
+    await Promise.all(
+        runConfig.map(async command => {
+            core.debug(`${context}`)
+            switch (command) {
+                case 'lgtm':
+                    core.debug('running pr lgtm new commit job')
+                    return await onPrLgtm(context).catch(async e => {
+                        return e
+                    })
+
+                case '':
+                    return new Error(
+                        `please provide a list of space delimited commands / jobs to run. None found`
+                    )
+
+                default:
+                    return new Error(
+                        `could not execute ${command}. May not be supported - please refer to docs`
+                    )
+            }
+        })
+    ).then(results => {
+        for (const result of results) {
+            if (result instanceof Error) {
+                throw new Error(`error handling issue comment: ${result}`)
+            }
+        }
+    }).catch(e => {
+        core.setFailed(`${e}`)
+    })
 }

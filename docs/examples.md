@@ -70,7 +70,7 @@ jobs:
   execute:
     runs-on: ubuntu-latest
     steps:
-      - uses: jpmcb/prow-github-actions@v1
+      - uses: chnsz/prow-github-actions@v1.0.0
         with:
           prow-commands: |
             /approve
@@ -91,7 +91,7 @@ jobs:
   execute:
     runs-on: ubuntu-latest
     steps:
-      - uses: jpmcb/prow-github-actions@v1
+      - uses: chnsz/prow-github-actions@v1.0.0
         with:
           prow-commands: |
             /assign
@@ -140,7 +140,7 @@ jobs:
   execute:
     runs-on: ubuntu-latest
     steps:
-      - uses: jpmcb/prow-github-actions@v1
+      - uses: chnsz/prow-github-actions@v1.0.0
         with:
           jobs: 'lgtm'
           github-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -155,7 +155,7 @@ jobs:
   execute:
     runs-on: ubuntu-latest
     steps:
-      - uses: jpmcb/prow-github-actions@v1
+      - uses: chnsz/prow-github-actions@v1.0.0
         with:
           jobs: 'lgtm'
           github-token: "${{ secrets.GITHUB_TOKEN }}"

@@ -19,6 +19,7 @@ import {lock} from './lock'
 import {cc} from './cc'
 import {uncc} from './uncc'
 import {milestone} from './milestone'
+import {isRobot} from "../constant";
 
 /**
  * This Method handles any issue comments
@@ -28,119 +29,125 @@ import {milestone} from './milestone'
  * @param context - the github context of the current action event
  */
 export const handleIssueComment = async (
-  context: Context = github.context
+    context: Context = github.context
 ): Promise<void> => {
-  const commandConfig = core
-    .getInput('prow-commands', {required: false})
-    .replace(/\n/g, ' ')
-    .split(' ')
-  const commentBody: string = context.payload.comment?.body
+    console.log('handleIssueComment')
+    if (core.isDebug()) {
+        console.log(context)
+    }
+    if (isRobot()) {
+        return ;
+    }
 
-  await Promise.all(
-    commandConfig.map(async command => {
-      if (commentBody.includes(command)) {
-        switch (command) {
-          case '/assign':
-            return await assign(context).catch(async e => {
-              return e
-            })
+    const commandConfig = core
+        .getInput('prow-commands', {required: false})
+        .replace(/\n/g, ' ')
+        .split(' ');
+    const commentBody: string = context.payload.comment?.body
 
-          case '/cc':
-            return await cc(context).catch(async e => {
-              return e
-            })
+    await Promise.all(
+        commandConfig.map(async command => {
+            if (commentBody.includes(command)) {
+                switch (command) {
+                    case '/assign':
+                        return await assign(context).catch(async e => {
+                            return e
+                        })
 
-          case '/uncc':
-            return await uncc(context).catch(async e => {
-              return e
-            })
+                    case '/cc':
+                        return await cc(context).catch(async e => {
+                            return e
+                        })
 
-          case '/unassign':
-            return await unassign(context).catch(async e => {
-              return e
-            })
+                    case '/uncc':
+                        return await uncc(context).catch(async e => {
+                            return e
+                        })
 
-          case '/approve':
-            return await approve(context).catch(async e => {
-              return e
-            })
+                    case '/unassign':
+                        return await unassign(context).catch(async e => {
+                            return e
+                        })
 
-          case '/retitle':
-            return await retitle(context).catch(async e => {
-              return e
-            })
+                    case '/approve':
+                        return await approve(context).catch(async e => {
+                            return e
+                        })
 
-          case '/remove':
-            return await remove(context).catch(async e => {
-              return e
-            })
+                    case '/retitle':
+                        return await retitle(context).catch(async e => {
+                            return e
+                        })
 
-          case '/area':
-            return await area(context).catch(async e => {
-              return e
-            })
+                    case '/remove':
+                        return await remove(context).catch(async e => {
+                            return e
+                        })
 
-          case '/kind':
-            return await kind(context).catch(async e => {
-              return e
-            })
+                    case '/area':
+                        return await area(context).catch(async e => {
+                            return e
+                        })
 
-          case '/hold':
-            return await hold(context).catch(async e => {
-              return e
-            })
+                    case '/kind':
+                        return await kind(context).catch(async e => {
+                            return e
+                        })
 
-          case '/priority':
-            return await priority(context).catch(async e => {
-              return e
-            })
+                    case '/hold':
+                        return await hold(context).catch(async e => {
+                            return e
+                        })
 
-          case '/lgtm':
-            return await lgtm(context).catch(async e => {
-              return e
-            })
+                    case '/priority':
+                        return await priority(context).catch(async e => {
+                            return e
+                        })
 
-          case '/close':
-            return await close(context).catch(async e => {
-              return e
-            })
+                    case '/lgtm':
+                        return await lgtm(context).catch(async e => {
+                            return e
+                        })
 
-          case '/lock':
-            return await lock(context).catch(async e => {
-              return e
-            })
+                    case '/close':
+                        return await close(context).catch(async e => {
+                            return e
+                        })
 
-          case '/reopen':
-            return await reopen(context).catch(async e => {
-              return e
-            })
+                    case '/lock':
+                        return await lock(context).catch(async e => {
+                            return e
+                        })
 
-          case '/milestone':
-            return await milestone(context).catch(async e => {
-              return e
-            })
+                    case '/reopen':
+                        return await reopen(context).catch(async e => {
+                            return e
+                        })
 
-          case '':
-            return new Error(
-              `please provide a list of space delimited commands / jobs to run. None found`
-            )
+                    case '/milestone':
+                        return await milestone(context).catch(async e => {
+                            return e
+                        })
 
-          default:
-            return new Error(
-              `could not execute ${command}. May not be supported - please refer to docs`
-            )
+                    case '':
+                        return new Error(
+                            `please provide a list of space delimited commands / jobs to run. None found`
+                        )
+
+                    default:
+                        return new Error(
+                            `could not execute ${command}. May not be supported - please refer to docs`
+                        )
+                }
+            }
+        })
+    ).then(results => {
+        for (const result of results) {
+            if (result instanceof Error) {
+                throw new Error(`error handling issue comment: ${result}`)
+            }
         }
-      }
-    })
-  )
-    .then(results => {
-      for (const result of results) {
-        if (result instanceof Error) {
-          throw new Error(`error handling issue comment: ${result}`)
-        }
-      }
-    })
-    .catch(e => {
-      core.setFailed(`${e}`)
+    }).catch(e => {
+        core.setFailed(`${e}`)
     })
 }

@@ -5,6 +5,7 @@ area:
 kind:
   - 'failing-test'
   - 'cleanup'
+  -
 
 priority:
   - 'low'

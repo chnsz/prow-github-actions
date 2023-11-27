@@ -5,27 +5,27 @@ import {handlePullReq} from './pullReq/handlePullReq'
 import {handleCronJobs} from './cronJobs/handleCronJob'
 
 async function run(): Promise<void> {
-  try {
-    switch (github.context.eventName) {
-      case 'issue_comment':
-        handleIssueComment()
-        break
-
-      case 'pull_request':
-        handlePullReq()
-        break
-
-      case 'schedule':
-        handleCronJobs()
-        break
-
-      default:
-        core.error(`${github.context.eventName} not yet supported`)
-        break
+    try {
+        switch (github.context.eventName) {
+            case 'issue_comment':
+                await handleIssueComment()
+                break
+            case 'pull_request_target':
+                await handlePullReq()
+                break
+            case 'pull_request':
+                await handlePullReq()
+                break
+            case 'schedule':
+                await handleCronJobs()
+                break
+            default:
+                core.error(`${github.context.eventName} not yet supported`)
+                break
+        }
+    } catch (error) {
+        if (error instanceof Error) core.setFailed(error.message)
     }
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
-  }
 }
 
 run()

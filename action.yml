@@ -14,6 +14,9 @@ inputs:
   merge-method:
     description: "Strategy for Prow-github-actions to take when merging a pull request using the lgtm cron-job. Can be 'squash', 'rebase', or 'merge'. Defaults to 'merge'"
     required: false
+  robot-name:
+    description: "Strategy for Prow-github-actions to take when merging a pull request using the lgtm cron-job. Can be 'squash', 'rebase', or 'merge'. Defaults to 'merge'"
+    required: false
 branding:
   color: blue
   icon: anchor

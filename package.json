@@ -1,6 +1,6 @@
 {
   "name": "prow-github-actions",
-  "version": "1.1.3",
+  "version": "1.0.0",
   "description": "Slash commands, jobs, and chat-ops for Github actions inspired by Kubernetes Prow",
   "main": "lib/main.js",
   "scripts": {
@@ -8,14 +8,14 @@
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
-    "pack": "ncc build",
+    "pack": "npm run build && ncc build",
     "test": "jest",
     "test-all": "npm run build && npm run pack && npm test",
     "all": "npm run build && npm run format && npm run lint && npm run pack && npm test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jpmcb/prow-github-actions.git"
+    "url": "git+https://github.com/chnsz/prow-github-actions.git"
   },
   "keywords": [
     "actions",
@@ -24,11 +24,11 @@
   "author": "John McBride",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.10.0",
-    "@actions/github": "^5.1.1",
-    "@octokit/rest": "^20.0.1",
-    "@octokit/types": "^11.1.0",
-    "@octokit/webhooks": "^12.0.3",
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@octokit/rest": "^20.0.2",
+    "@octokit/types": "^12.3.0",
+    "@octokit/webhooks": "^12.0.8",
     "minimatch": "^9.0.3"
   },
   "engine": {

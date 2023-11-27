@@ -6,16 +6,16 @@
  * @param body - the full body of the comment
  */
 export const getLineArgs = (command: string, body: string): string => {
-  let toReturn = ''
-  const lineArray = body.split('\n')
+    let toReturn = ''
+    const lineArray = body.split('\n')
 
-  for (const iterator of lineArray) {
-    if (iterator.includes(command)) {
-      toReturn = iterator.replace(`${command} `, '')
+    for (const iterator of lineArray) {
+        if (iterator.includes(command)) {
+            toReturn = iterator.replace(`${command} `, '')
+        }
     }
-  }
 
-  return toReturn
+    return toReturn
 }
 
 /**
@@ -26,33 +26,33 @@ export const getLineArgs = (command: string, body: string): string => {
  * @param body - the full body of the comment
  */
 export const getCommandArgs = (command: string, body: string): string[] => {
-  const toReturn = []
-  const lineArray = body.split('\n')
-  let bodyArray = undefined
+    const toReturn = []
+    const lineArray = body.split('\n')
+    let bodyArray = undefined
 
-  for (const iterator of lineArray) {
-    if (iterator.includes(command)) {
-      bodyArray = iterator.split(' ')
+    for (const iterator of lineArray) {
+        if (iterator.includes(command)) {
+            bodyArray = iterator.split(' ')
+        }
     }
-  }
 
-  if (bodyArray === undefined) {
-    throw new Error(`command ${command} missing from body`)
-  }
+    if (bodyArray === undefined) {
+        throw new Error(`command ${command} missing from body`)
+    }
 
-  let i = 0
-  while (bodyArray[i] !== command && i < bodyArray.length) {
+    let i = 0
+    while (bodyArray[i] !== command && i < bodyArray.length) {
+        i++
+    }
+
+    // advance the index to the next as we've found the command
     i++
-  }
+    while (bodyArray[i] !== '\n' && i < bodyArray.length) {
+        toReturn.push(bodyArray[i])
+        i++
+    }
 
-  // advance the index to the next as we've found the command
-  i++
-  while (bodyArray[i] !== '\n' && i < bodyArray.length) {
-    toReturn.push(bodyArray[i])
-    i++
-  }
-
-  return stripAtSign(toReturn)
+    return stripAtSign(toReturn)
 }
 
 /**
@@ -63,15 +63,15 @@ export const getCommandArgs = (command: string, body: string): string[] => {
  * @param args - the array to remove at signs from
  */
 const stripAtSign = (args: string[]): string[] => {
-  const toReturn: string[] = []
+    const toReturn: string[] = []
 
-  for (const e of args) {
-    if (e.startsWith('@')) {
-      toReturn.push(e.replace('@', ''))
-    } else {
-      toReturn.push(e)
+    for (const e of args) {
+        if (e.startsWith('@')) {
+            toReturn.push(e.replace('@', ''))
+        } else {
+            toReturn.push(e)
+        }
     }
-  }
 
-  return toReturn
+    return toReturn
 }
